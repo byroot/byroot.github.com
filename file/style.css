@@ -17,6 +17,10 @@
     line-height: 18px;
 }
 
+.presentation-cover{
+  margin-top: 0 !important;
+}
+
 .content.presentation-cover > p{
     margin: 4px !important;
 }
