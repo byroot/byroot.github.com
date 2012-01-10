@@ -1,9 +1,17 @@
-<!SLIDE>
+<!SLIDE presentation-cover>
 # Liquid & Solid #
 
-<!SLIDE bullets incremental transition=fade>
+![tigerlily-cover](tigerlily-cover.jpg)
 
-# Qu'est-ce que c'est ?
+<!SLIDE>
+
+# Tigerlily
+
+Tigerlily édite une plateforme à destination des grands comptes, qui leur permet de gérer de façon simple et efficace leurs actions de social marketing
+
+<!SLIDE>
+
+# Liquid - Qu'est-ce que c'est ?
 
 * Implémentation Ruby du moteur de template de Django
 * Crée par Shopify
@@ -11,13 +19,15 @@
 
 <!SLIDE>
 
-# Bac à sable
+# Liquid - Bac à sable
 
     @@@ html
       <p><% User.delete_all %> Pwned !</p>
 
 
 <!SLIDE>
+
+# Sommaire
 
 * Liquid
     * Aperçu
@@ -120,12 +130,20 @@
 * Tags
 * Block
 
+
+<!SLIDE>
+
+# Extension - Filters
+
+    @@@ html
+        <p>{{ my_list|join:", " }}</p>
+
+
 <!SLIDE>
 
 # Extension - Filters
 
     @@@ ruby
-
         module MyFilters
 
           def join(input, glue=' ')
@@ -138,12 +156,12 @@
 
 <!SLIDE>
 
-# Extension - Filters
+# Extension - Tags
 
     @@@ html
-
-        <p>{{ my_list|join:", " }}</p>
-
+        <p>{% random 5 %}</p>
+        <!-- produce -->
+        <p>3</p>
 
 <!SLIDE>
 
@@ -165,18 +183,23 @@
 
 <!SLIDE>
 
-# Extension - Tags
+# Extension - Block
 
-    @@@ ruby
-        @template = Liquid::Template.parse(" {% random 5 %}")
-        @template.render    # => "3"
+    @@@ html
+        {% random 5 %}
+          <p>Wanna hear a joke?<p>
+        {% endrandom %}
+
+        <!-- In 20% of the cases, produce: -->
+
+        <p>Wanna hear a joke?</p>
+
 
 <!SLIDE>
 
 # Extension - Block
 
     @@@ ruby
-
         class Random < Liquid::Block
           def initialize(tag_name, markup, tokens)
             super
@@ -194,26 +217,29 @@
 
         Liquid::Template.register_tag('random', Random)
 
+
 <!SLIDE>
 
-# Extension - Block
+# Extension - Multipart Block
 
-    @@@ ruby
-
-        text = " {% random 5 %} wanna hear a joke? {% endrandom %} "
-        @template = Liquid::Template.parse(text)
-        @template.render  # => In 20% of the cases, this will output "wanna hear a joke?"
+    @@@ html
+        <p>
+        {% if_already_voted_on post %}
+            Remove my vote
+        {% else %}
+            Vote
+        {% endif_already_voted_on %}
+        </p>
 
 <!SLIDE>
 
 # Extension - Multipart Block
 
     @@@ ruby
+        class IfAlreadyVotedOn < Liquid::Block
 
-        class IfLuckyOrAdmin < Block
-
-          def initialize(tag_name, rand, tokens)
-            @rand = rand.to_i
+          def initialize(tag_name, variable, tokens)
+            @variable = variable
             @blocks = []
             push_block!
             super
@@ -222,14 +248,13 @@
           def render(context)
             context.stack do
               current_user = context['current_user']
-              is_admin = current_user && current_user.admin?
-              block = is_admin || rand(@rand) == 0 ? block.first : block.last
+              post = context[@variable]
+              block = current_user.already_voted_on?(post) ? @blocks.first : @blocks.last
               return render_all(block, context)
             end
           end
 
           ## snip ....
-
 
 <!SLIDE>
 
@@ -254,24 +279,7 @@
 
         end
 
-        Template.register_tag('if_lucky_or_admin', IfLuckyOrAdmin)
-
-<!SLIDE>
-
-# Extension - Multipart Block
-
-    @@@ ruby
-
-        text = %{
-            {% if_lucky_or_admin 5 %}
-                Wanna hear a joke?
-            {% else %}
-                Get off my lawn !!!
-            {% endif_lucky %}
-        }
-        @template = Liquid::Template.parse(text)
-        @template.render
-
+        Template.register_tag('if_already_voted_on', IfAlreadyVotedOn)
 
 <!SLIDE>
 # Performance - Parsing
@@ -283,7 +291,6 @@
 # Performance - Parsing
 
     @@@ ruby
-
         GC.disable
         Benchmark.bm{ |x| 
             x.report('~25    tags') { Liquid::Template.parse(template25) }
@@ -327,7 +334,6 @@ Une bibliothèque qui aide à créer des tags liquid plus cohérents et plus fac
           end
 
         end
-
 
 <!SLIDE>
 
@@ -392,14 +398,14 @@ Une bibliothèque qui aide à créer des tags liquid plus cohérents et plus fac
 # Solid - Conditional Blocks
 
     @@@ ruby
-        class IfAuthorizedToTag < Solid::ConditionalTag
+        class IfAlreadyVotedOn < Solid::ConditionalBlock
 
-          tag_name :if_authorized_to
+          tag_name :if_already_voted_on
 
           context_attribute :current_user
 
-          def display(permission)
-            yield(current_user.authorized_to?(permission))
+          def display(post)
+            yield(current_user.already_voted_on?(post))
           end
 
         end
@@ -409,11 +415,14 @@ Une bibliothèque qui aide à créer des tags liquid plus cohérents et plus fac
 # Solid - Conditional Blocks
 
     @@@ html
-        {% if_authorized_to "publish" %}
-          You are authorized !
+        <p>
+        {% if_already_voted_on post %}
+            Remove my vote
         {% else %}
-          Get off my lawn !!
-        {% endif_authorized_to %}
+            Vote
+        {% endif_already_voted_on %}
+        </p>
+
 
 <!SLIDE>
 
@@ -445,7 +454,7 @@ Une bibliothèque qui aide à créer des tags liquid plus cohérents et plus fac
 # Solid - ModelDrop
 
     @@@ ruby
-        class PostDrop < ModelDrop
+        class PostDrop < Solid::ModelDrop
 
           allow_scopes :published, :with_comments
 
@@ -472,6 +481,19 @@ Une bibliothèque qui aide à créer des tags liquid plus cohérents et plus fac
 
 # Solid - Goodies
 
-* Coloration syntaxique pour Ace
+Coloration syntaxique pour Ace
+
+    @@@ javascript
+        //= require ace/mode-solid
+
+<!SLIDE>
+
+# References
+
+* Tigerlily: [http://tigerlilyapps.com/](http://tigerlilyapps.com/)
+* Rubygem: [https://rubygems.org/gems/tigerlily-solid](https://rubygems.org/gems/tigerlily-solid)
+* Github: [https://github.com/tigerlily/solid](https://github.com/tigerlily/solid)
+
+
 
 
