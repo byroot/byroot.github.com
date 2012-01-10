@@ -9,6 +9,14 @@
   font-style: normal;
 }
 
+.content > pre{
+    font-size: 100% !important;
+}
+
+.content > pre > code{
+    line-height: 18px;
+}
+
 .content.presentation-cover > p{
     margin: 4px !important;
 }

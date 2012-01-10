@@ -271,9 +271,9 @@
 
 <pre class="sh_html"><code>    &lt;p&gt;
     {% if_already_voted_on post %}
-        Unlike
+        Remove my vote
     {% else %}
-        Like
+        Vote
     {% endif_already_voted_on %}
     &lt;/p&gt;</code></pre></div>
 </div><div class="slide" data-transition="none"><div class="content" ref="one/01_slide/21">
@@ -418,25 +418,27 @@
 </div><div class="slide" data-transition="none"><div class="content" ref="one/01_slide/32">
 <h1>Solid - Conditional Blocks</h1>
 
-<pre class="sh_ruby"><code>    class IfAuthorizedToTag &lt; Solid::ConditionalBlock
+<pre class="sh_ruby"><code>    class IfAlreadyVotedOn &lt; Solid::ConditionalBlock
 
-      tag_name :if_authorized_to
+      tag_name :if_already_voted_on
 
       context_attribute :current_user
 
-      def display(permission)
-        yield(current_user.authorized_to?(permission))
+      def display(post)
+        yield(current_user.already_voted_on?(post))
       end
 
     end</code></pre></div>
 </div><div class="slide" data-transition="none"><div class="content" ref="one/01_slide/33">
 <h1>Solid - Conditional Blocks</h1>
 
-<pre class="sh_html"><code>    {% if_authorized_to "publish" %}
-      You are authorized !
+<pre class="sh_html"><code>    &lt;p&gt;
+    {% if_already_voted_on post %}
+        Remove my vote
     {% else %}
-      Get off my lawn !!
-    {% endif_authorized_to %}</code></pre></div>
+        Vote
+    {% endif_already_voted_on %}
+    &lt;/p&gt;</code></pre></div>
 </div><div class="slide" data-transition="none"><div class="content" ref="one/01_slide/34">
 <h1>Solid - Template</h1>
 
